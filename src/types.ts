@@ -19,10 +19,17 @@ export interface InteractiveData {
   buttons: Button[];
 }
 
+export interface UserInfo {
+  name?: string;
+  reason?: string;
+  state: "collecting_name" | "collecting_reason" | "completed" | "none";
+}
+
 export interface MenuResponse {
   response: string;
   isInteractive: boolean;
   interactiveData: InteractiveData | null;
+  userInfo?: UserInfo;
 }
 
 export interface WhatsAppMessage {
