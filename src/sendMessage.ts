@@ -1,7 +1,21 @@
 import axios from "axios";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+// Validate configuration
+if (!WHATSAPP_TOKEN) {
+  throw new Error("WHATSAPP_TOKEN is not set in environment variables");
+}
+if (!WHATSAPP_PHONE_NUMBER_ID) {
+  throw new Error(
+    "WHATSAPP_PHONE_NUMBER_ID is not set in environment variables"
+  );
+}
+
 const WHATSAPP_API_URL = `https://graph.facebook.com/v22.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
 
 // Function to send WhatsApp message
@@ -38,6 +52,12 @@ export const sendMessage = async (
       messageData.type = "text";
       messageData.text = { body: message };
     }
+
+    console.log("Sending message to WhatsApp API:", {
+      url: WHATSAPP_API_URL,
+      phoneNumberId: WHATSAPP_PHONE_NUMBER_ID,
+      messageType: messageData.type,
+    });
 
     const response = await axios.post(WHATSAPP_API_URL, messageData, {
       headers: {

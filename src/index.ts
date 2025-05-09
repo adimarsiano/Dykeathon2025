@@ -34,15 +34,27 @@ app.post("/webhook", async (req: Request, res: Response) => {
       }
 
       const from = message.from;
-      const buttonId = isButtonClick(message)
-        ? message.interactive?.button_reply?.id || "menu"
-        : "menu";
+      let msg_body: string;
 
-      console.log("Received message:", buttonId, "from:", from);
+      if (isButtonClick(message)) {
+        msg_body = message.interactive?.button_reply?.id || "menu";
+      } else if (message.type === "text" && message.text) {
+        msg_body = message.text.body;
+      } else {
+        // Handle other types of messages or send main menu
+        const { response, isInteractive, interactiveData } =
+          handleMenuNavigation(from, "menu");
+        await sendMessage(from, response, isInteractive, interactiveData);
+        res.sendStatus(200);
+        return;
+      }
 
-      const { response, isInteractive, interactiveData } =
-        handleMenuNavigation(from);
+      console.log("Received message:", msg_body, "from:", from);
 
+      const { response, isInteractive, interactiveData } = handleMenuNavigation(
+        from,
+        msg_body
+      );
       await sendMessage(from, response, isInteractive, interactiveData);
 
       res.sendStatus(200);
