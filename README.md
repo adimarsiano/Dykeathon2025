@@ -1,3 +1,8 @@
+# Setup
+
+terminal 0: ngrok http 3888
+terminal 1: npm run build && npm run save
+
 # WhatsApp Business Bot
 
 A Node.js application that implements a WhatsApp Business Bot for handling customer interactions.
@@ -81,4 +86,5 @@ You can extend the message handling logic in `src/index.js` to add more features
 ## License
 
 MIT
+
 # Dykeathon2025
