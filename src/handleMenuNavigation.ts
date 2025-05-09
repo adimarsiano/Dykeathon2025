@@ -1,11 +1,10 @@
 import { MenuResponse, UserInfo } from "./types";
 import { menus, questionAndAnswers } from "./menus";
-import { formattedTexts } from "./texts";
 
 // User session storage
 const userInfoMap = new Map<string, UserInfo>();
 
-export const handleMessage = (
+export const handleMenuNavigation = (
   userId: string,
   message: string
 ): MenuResponse => {
@@ -56,20 +55,6 @@ export const handleMessage = (
   if (selectedButton) {
     const { id: buttonId } = selectedButton;
 
-    // Handle organization questions
-    if (buttonId === "organizationQuestions") {
-      response = formattedTexts.organizationInfo;
-      isInteractive = false;
-      return { response, isInteractive, interactiveData };
-    }
-
-    // Handle process questions
-    if (buttonId === "processQuestions") {
-      response = formattedTexts.processInfo;
-      isInteractive = false;
-      return { response, isInteractive, interactiveData };
-    }
-
     // Handle human representative request
     if (buttonId === "humanRepresentativeQuestions") {
       userInfo = {
@@ -79,6 +64,26 @@ export const handleMessage = (
       response = "בבקשה הכנס את שמך:";
       isInteractive = false;
       return { response, isInteractive, interactiveData, userInfo };
+    }
+
+    // Handle organization questions
+    if (buttonId === "organizationQuestions") {
+      response =
+        "*על הארגון שלנו:*\n\nיש איתנו אנשים ונשים מכל קשת המפה הפוליטית. אנחנו מאמינים שחילוקי דעות הם בריאים במסגרת דמוקרטית.\n\n_המסגרת שלנו_ מאפשרת ייצוג טוב יותר ושיתוף רב יותר של אוכלוסיות שונות בתהליכי קבלת ההחלטות.\n\n*אנו מקדמים נושאים* שאנו יכולים להסכים עליהם ועובדים עם כל הממשלות בעשור האחרון.";
+      isInteractive = false;
+      return { response, isInteractive, interactiveData };
+    }
+
+    // Handle process questions navigation
+    if (buttonId === "processQuestions") {
+      interactiveData = menus.processQuestions;
+      return { response, isInteractive, interactiveData };
+    }
+
+    if (buttonId === "processQuestions_3") {
+      // After the last question in processQuestions, show processQuestions2
+      interactiveData = menus.processQuestions2;
+      return { response, isInteractive, interactiveData };
     }
 
     const nextMenu = menus[buttonId];
