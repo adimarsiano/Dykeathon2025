@@ -4,7 +4,7 @@ import { menus, questionAndAnswers } from "./menus";
 // User session storage
 const userInfoMap = new Map<string, UserInfo>();
 
-export const handleMenuNavigation = (
+export const handleMessage = (
   userId: string,
   message: string
 ): MenuResponse => {

@@ -1,11 +1,8 @@
-import dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
 import { WebhookBody, WhatsAppMessage } from "./types";
-import { handleMenuNavigation } from "./handleMenuNavigation";
+import { handleMessage } from "./handleMessage";
 import { sendMessage } from "./sendMessage";
-
-dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -13,11 +10,19 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(bodyParser.json());
 
-const isButtonClick = (message: WhatsAppMessage) => {
-  return (
-    message.type === "interactive" &&
-    message.interactive?.type === "button_reply"
-  );
+const extractMessage = (messageObject: WhatsAppMessage) => {
+  const isTextMessage = messageObject.type === "text" && messageObject.text;
+  const isButtonClick =
+    messageObject.type === "interactive" &&
+    messageObject.interactive?.type === "button_reply";
+
+  if (isTextMessage) {
+    return messageObject.text?.body || "";
+  } else if (isButtonClick) {
+    return messageObject.interactive?.button_reply?.id || "menu";
+  }
+
+  return "menu";
 };
 
 // Webhook for receiving messages
@@ -26,35 +31,23 @@ app.post("/webhook", async (req: Request, res: Response) => {
     const body = req.body as WebhookBody;
 
     if (body.object) {
-      const message = body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+      const messageObject = body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
 
-      if (!message) {
+      if (!messageObject) {
         res.sendStatus(200);
         return;
       }
 
-      const from = message.from;
-      let msg_body: string;
+      const message = extractMessage(messageObject);
+      const from = messageObject.from;
 
-      if (isButtonClick(message)) {
-        msg_body = message.interactive?.button_reply?.id || "menu";
-      } else if (message.type === "text" && message.text) {
-        msg_body = message.text.body;
-      } else {
-        // Handle other types of messages or send main menu
-        const { response, isInteractive, interactiveData } =
-          handleMenuNavigation(from, "menu");
-        await sendMessage(from, response, isInteractive, interactiveData);
-        res.sendStatus(200);
-        return;
-      }
+      console.log("Received message:", message, "from:", from);
 
-      console.log("Received message:", msg_body, "from:", from);
-
-      const { response, isInteractive, interactiveData } = handleMenuNavigation(
+      const { response, isInteractive, interactiveData } = handleMessage(
         from,
-        msg_body
+        message
       );
+
       await sendMessage(from, response, isInteractive, interactiveData);
 
       res.sendStatus(200);
