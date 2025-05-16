@@ -1,4 +1,4 @@
-export interface Button {
+export interface Option {
   id: string;
   title: string;
 }
@@ -6,17 +6,11 @@ export interface Button {
 export interface Menu {
   header: string;
   body: string;
-  buttons: Button[];
+  options: Option[];
 }
 
 export interface Menus {
   [key: string]: Menu;
-}
-
-export interface InteractiveData {
-  header: string;
-  body: string;
-  buttons: Button[];
 }
 
 export interface UserInfo {
@@ -28,7 +22,7 @@ export interface UserInfo {
 export interface MenuResponse {
   response: string;
   isInteractive: boolean;
-  interactiveData: InteractiveData | null;
+  interactiveData: any | null;
   userInfo?: UserInfo;
 }
 

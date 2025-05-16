@@ -6,6 +6,7 @@ dotenv.config();
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
+// Validate configuration
 if (!WHATSAPP_TOKEN) {
   throw new Error("WHATSAPP_TOKEN is not set in environment variables");
 }
@@ -17,9 +18,12 @@ if (!WHATSAPP_PHONE_NUMBER_ID) {
 
 const WHATSAPP_API_URL = `https://graph.facebook.com/v22.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
 
+// Function to send WhatsApp message (text only)
 export const sendMessage = async (
   to: string,
-  message: string
+  message: string,
+  isInteractive = false, // ignored
+  interactiveData: any = null // ignored
 ): Promise<any> => {
   if (!message || typeof message !== "string" || message.trim() === "") {
     console.error("Attempted to send empty WhatsApp message body:", message);
@@ -34,12 +38,11 @@ export const sendMessage = async (
       text: { body: message },
     };
 
+    console.log("Message body to send:", message);
     console.log("Sending message to WhatsApp API:", {
       url: WHATSAPP_API_URL,
       phoneNumberId: WHATSAPP_PHONE_NUMBER_ID,
       messageType: messageData.type,
-      to,
-      message,
     });
 
     const response = await axios.post(WHATSAPP_API_URL, messageData, {

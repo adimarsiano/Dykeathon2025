@@ -1,23 +1,31 @@
 import { MenuResponse, UserInfo } from "./types";
-import { menus, questionAndAnswers } from "./menus";
-import { formattedTexts } from "./texts";
+import { menus, renderMenu } from "./menus";
+import type { questionAndAnswers as qaType } from "./menus";
 
 // User session storage
 const userInfoMap = new Map<string, UserInfo>();
 
-export const handleMessage = (
+// Track where each user is in the menu
+const userMenuMap = new Map<string, string>();
+
+// Import questionAndAnswers as Record<string, string>
+import { questionAndAnswers } from "./menus";
+const qa: Record<string, string> = questionAndAnswers;
+
+export const handleMenuNavigation = (
   userId: string,
   message: string
 ): MenuResponse => {
   let response = "";
-  let isInteractive = true;
+  let isInteractive = false;
   let interactiveData = null;
   let userInfo: UserInfo | undefined = userInfoMap.get(userId);
 
   // Check if user wants to go back to main menu
   if (message.toLowerCase() === "menu" || message.toLowerCase() === "main") {
     userInfoMap.delete(userId);
-    interactiveData = menus.main;
+    userMenuMap.set(userId, "main");
+    response = renderMenu(menus.main);
     return { response, isInteractive, interactiveData };
   }
 
@@ -27,7 +35,6 @@ export const handleMessage = (
     userInfo.state = "collecting_reason";
     userInfoMap.set(userId, userInfo);
     response = "בבקשה הכנס את הסיבה לפנייתך:";
-    isInteractive = false;
     return { response, isInteractive, interactiveData, userInfo };
   }
 
@@ -44,55 +51,51 @@ export const handleMessage = (
 
     response =
       "תודה! נציג שלנו יצור איתך קשר בהקדם. הקלד 'menu' לחזרה לתפריט הראשי.";
-    isInteractive = false;
     userInfoMap.delete(userId);
     return { response, isInteractive, interactiveData, userInfo };
   }
 
-  const selectedButton = Object.values(menus)
-    .flatMap((menu) => menu.buttons)
-    .find((button) => button.id === message);
+  // Get current menu for user, default to main
+  const currentMenuKey = userMenuMap.get(userId) || "main";
+  const currentMenu = menus[currentMenuKey];
 
-  if (selectedButton) {
-    const { id: buttonId } = selectedButton;
-
-    // Handle organization questions
-    if (buttonId === "organizationQuestions") {
-      response = formattedTexts.organizationInfo;
-      isInteractive = false;
+  // Try to parse the message as a number
+  const selectedIndex = parseInt(message.trim(), 10) - 1;
+  if (
+    !isNaN(selectedIndex) &&
+    currentMenu.options &&
+    selectedIndex >= 0 &&
+    selectedIndex < currentMenu.options.length
+  ) {
+    const selectedOption = currentMenu.options[selectedIndex];
+    // If the selected option leads to another menu
+    if (menus[selectedOption.id]) {
+      userMenuMap.set(userId, selectedOption.id);
+      response = renderMenu(menus[selectedOption.id]);
       return { response, isInteractive, interactiveData };
     }
-
-    // Handle process questions
-    if (buttonId === "processQuestions") {
-      response = formattedTexts.processInfo;
-      isInteractive = false;
+    // If the selected option is a question with an answer
+    if (qa[selectedOption.id]) {
+      response = qa[selectedOption.id];
       return { response, isInteractive, interactiveData };
     }
-
-    // Handle human representative request
-    if (buttonId === "humanRepresentativeQuestions") {
+    // If the selected option is human representative
+    if (selectedOption.id === "humanRepresentativeQuestions") {
       userInfo = {
         state: "collecting_name",
       };
       userInfoMap.set(userId, userInfo);
       response = "בבקשה הכנס את שמך:";
-      isInteractive = false;
       return { response, isInteractive, interactiveData, userInfo };
     }
-
-    const nextMenu = menus[buttonId];
-    if (nextMenu) {
-      interactiveData = nextMenu;
-    } else {
-      response =
-        questionAndAnswers[buttonId as keyof typeof questionAndAnswers] ??
-        "תשובה לא קיימת";
-      isInteractive = false;
-    }
-  } else {
-    interactiveData = menus.main;
+  } else if (currentMenu.options && currentMenu.options.length > 0) {
+    // If input is not a valid number for the current menu
+    response = "Please try again";
+    return { response, isInteractive, interactiveData };
   }
 
-  return { response, isInteractive, interactiveData, userInfo };
+  // Default: show main menu
+  userMenuMap.set(userId, "main");
+  response = renderMenu(menus.main);
+  return { response, isInteractive, interactiveData };
 };
