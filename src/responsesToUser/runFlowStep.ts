@@ -4,6 +4,33 @@ import { UserState } from "../userState";
 import { updateUserState } from "../userState";
 import { goToMenu, MAIN_MENU } from "./goToMenu";
 import { sendTextMessage } from "./sendTextMessage";
+import { sendMessageTemplate } from "../sendMessage";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const PHONE_NUMBER_TO_SEND_NEW_CONTACTS =
+  process.env.PHONE_NUMBER_TO_SEND_NEW_CONTACTS;
+
+if (!PHONE_NUMBER_TO_SEND_NEW_CONTACTS) {
+  throw new Error(
+    "PHONE_NUMBER_TO_SEND_NEW_CONTACTS is not set in environment variables"
+  );
+}
+
+const sendUserDetails = async ({
+  userName,
+  phoneNumber,
+}: {
+  userName: string;
+  phoneNumber: string;
+}) => {
+  await sendMessageTemplate(
+    PHONE_NUMBER_TO_SEND_NEW_CONTACTS,
+    "new_contact_2",
+    [userName, phoneNumber]
+  );
+};
 
 const stepsFunctions: Record<
   string,
@@ -17,24 +44,23 @@ const stepsFunctions: Record<
     message: string;
     state: UserState;
     stepMessage: string;
-  }) => {
+  }) => Promise<{
     type: "message";
     text: string;
-  }
+  }>
 > = {
-  updateNameAndGetPhoneNumber: ({ userId, message, stepMessage }) => {
+  updateNameAndGetPhoneNumber: async ({ userId, message, stepMessage }) => {
     updateUserState(userId, { userDetails: { name: message } });
 
     return sendTextMessage(stepMessage ?? "");
   },
-  sendUserDetails: ({ userId, message, state, stepMessage }) => {
+  sendUserDetails: async ({ userId, message, state, stepMessage }) => {
     updateUserState(userId, { userDetails: { phoneNumber: message } });
 
-    const userName = state.userDetails?.name;
-    const phoneNumber = message;
-
-    // TODO: send details
-    console.log("userDetails", userName, phoneNumber);
+    await sendUserDetails({
+      userName: state.userDetails?.name ?? "Unknown",
+      phoneNumber: message,
+    });
 
     return sendTextMessage(stepMessage ?? "");
   },
@@ -48,7 +74,7 @@ const updateStepInState = (
   updateUserState(userId, { flow: { id: flowId, stepIndex } });
 };
 
-export const runFlowStep = ({
+export const runFlowStep = async ({
   flowId,
   userId,
   message,
@@ -60,7 +86,9 @@ export const runFlowStep = ({
   message: string;
   state: UserState;
   stepIndex: number;
-}): { type: "message"; text: string } | { type: "menu"; text: string } => {
+}): Promise<
+  { type: "message"; text: string } | { type: "menu"; text: string }
+> => {
   updateStepInState(userId, flowId, stepIndex);
 
   const stepConfig = flows[flowId][stepIndex];
@@ -70,7 +98,7 @@ export const runFlowStep = ({
 
   const response = isTextMessage
     ? sendTextMessage(stepMessage)
-    : stepsFunctions[functionId ?? ""]?.({
+    : await stepsFunctions[functionId ?? ""]?.({
         userId,
         message,
         state,

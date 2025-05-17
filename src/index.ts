@@ -47,7 +47,7 @@ app.post("/webhook", async (req: Request, res: Response) => {
       return;
     }
 
-    const response = handleMessage(from, message);
+    const response = await handleMessage(from, message);
 
     await sendMessage(from, response.text);
 

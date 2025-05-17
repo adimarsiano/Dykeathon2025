@@ -3,6 +3,9 @@
 terminal 0: ngrok http 3888
 terminal 1: npm run build && npm run save
 
+new_contact_2: need to edit in whatsapp template
+All other - in config
+
 # WhatsApp Business Bot
 
 A Node.js application that implements a WhatsApp Business Bot for handling customer interactions.

@@ -15,7 +15,7 @@ if (!WHATSAPP_PHONE_NUMBER_ID) {
   );
 }
 
-const WHATSAPP_API_URL = `https://graph.facebook.com/v22.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
+const WHATSAPP_API_URL = `https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
 
 export const sendMessage = async (
   to: string,
@@ -25,21 +25,48 @@ export const sendMessage = async (
     console.error("Attempted to send empty WhatsApp message body:", message);
     throw new Error("Cannot send empty WhatsApp message body.");
   }
-  try {
-    const messageData: any = {
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to,
-      type: "text",
-      text: { body: message },
-    };
 
-    console.log("Sending message to WhatsApp API:", {
+  const messageData: any = {
+    messaging_product: "whatsapp",
+    recipient_type: "individual",
+    to,
+    type: "text",
+    text: { body: message },
+  };
+
+  return sendMessageInner(messageData);
+};
+
+export const sendMessageTemplate = async (
+  to: string,
+  templateName: string,
+  parameters: string[]
+): Promise<any> => {
+  const messageData: any = {
+    messaging_product: "whatsapp",
+    to,
+    type: "template",
+    template: {
+      name: templateName,
+      language: { code: "en_US" },
+      components: [
+        {
+          type: "body",
+          parameters: parameters.map((text) => ({ type: "text", text })),
+        },
+      ],
+    },
+  };
+
+  return sendMessageInner(messageData);
+};
+
+const sendMessageInner = async (messageData: any) => {
+  try {
+    console.log("Sending template message to WhatsApp API:", {
       url: WHATSAPP_API_URL,
       phoneNumberId: WHATSAPP_PHONE_NUMBER_ID,
-      messageType: messageData.type,
-      to,
-      message,
+      messageData,
     });
 
     const response = await axios.post(WHATSAPP_API_URL, messageData, {
@@ -48,11 +75,11 @@ export const sendMessage = async (
         "Content-Type": "application/json",
       },
     });
-    console.log("Message sent successfully:", response.data);
+    console.log("Template message sent successfully:", response.data);
     return response.data;
   } catch (error: any) {
     console.error(
-      "Error sending WhatsApp message:",
+      "Error sending WhatsApp template message:",
       error.response?.data || error.message
     );
     throw error;

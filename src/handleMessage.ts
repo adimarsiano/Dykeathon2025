@@ -5,23 +5,24 @@ import { runFlowStep } from "./responsesToUser/runFlowStep";
 import { goToMenu, MAIN_MENU } from "./responsesToUser/goToMenu";
 import { sendTextMessage } from "./responsesToUser/sendTextMessage";
 
-export function handleMessage(
+export async function handleMessage(
   userId: string,
   message: string
-): { type: "menu" | "message"; text: string } {
+): Promise<{ type: "menu" | "message"; text: string }> {
   const state = getUserState(userId);
 
-  console.log({ xxxxxx: state });
   if (state?.flow) {
     const { id: flowId, stepIndex } = state.flow;
 
-    return runFlowStep({
+    const response = await runFlowStep({
       flowId,
       stepIndex,
       userId,
       message,
       state,
     });
+
+    return response;
   }
 
   const menu = menus[state?.menu ?? ""];
@@ -39,7 +40,7 @@ export function handleMessage(
   const { nextFlow, nextMenu, textMessage } = chosenOption;
 
   if (nextFlow) {
-    return runFlowStep({
+    return await runFlowStep({
       flowId: nextFlow,
       stepIndex: 0,
       userId,
