@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
-import { handleMessageAndGetResponse } from "./handleMessageAndGetResponse";
+import { handleMessage } from "./handleMessage";
 import { sendMessage } from "./sendMessage";
 
 const app = express();
@@ -46,7 +46,8 @@ app.post("/webhook", async (req: Request, res: Response) => {
       res.status(400).send("Missing 'from' or 'message'");
       return;
     }
-    const response = handleMessageAndGetResponse(from, message);
+
+    const response = handleMessage(from, message);
 
     await sendMessage(from, response.text);
 
