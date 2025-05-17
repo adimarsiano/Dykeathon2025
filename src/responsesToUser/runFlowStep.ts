@@ -25,6 +25,7 @@ const sendUserDetails = async ({
   userName: string;
   phoneNumber: string;
 }) => {
+  //new_contact_2 is a template created in facebook developers - business manager
   await sendTemplate(PHONE_NUMBER_TO_SEND_NEW_CONTACTS, "new_contact_2", [
     userName,
     phoneNumber,

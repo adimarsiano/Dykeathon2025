@@ -1,10 +1,21 @@
-# Setup
+# Hello!
+
+#### init:
+
+npm install
+
+#### run
 
 terminal 0: ngrok http 3888
-terminal 1: npm run build && npm run save
+terminal 1: npm run dev
 
-new_contact_2: need to edit in whatsapp template
-All other - in config
+#### comments
+
+1. config folder: all the menus/flows configurations
+
+2. When expired, need to re-generate token and put it in .env WHATSAPP_TOKEN
+
+====================================================
 
 # WhatsApp Business Bot
 
