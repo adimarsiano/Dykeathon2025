@@ -37,7 +37,7 @@ export const sendMessage = async (
   return sendMessageInner(messageData);
 };
 
-export const sendMessageTemplate = async (
+export const sendTemplate = async (
   to: string,
   templateName: string,
   parameters: string[]

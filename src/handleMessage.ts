@@ -2,13 +2,16 @@ import { getUserState } from "./userState";
 import { menus } from "./config/menus";
 import { INVALID_INPUT_MESSAGE } from "./config/texts";
 import { runFlowStep } from "./responsesToUser/runFlowStep";
-import { goToMenu, MAIN_MENU } from "./responsesToUser/goToMenu";
-import { sendTextMessage } from "./responsesToUser/sendTextMessage";
+import { goToMenu, MAIN_MENU, MenuResponse } from "./responsesToUser/goToMenu";
+import {
+  sendTextMessage,
+  TextResponse,
+} from "./responsesToUser/sendTextMessage";
 
 export async function handleMessage(
   userId: string,
   message: string
-): Promise<{ type: "menu" | "message"; text: string }> {
+): Promise<MenuResponse | TextResponse> {
   const state = getUserState(userId);
 
   if (state?.flow) {

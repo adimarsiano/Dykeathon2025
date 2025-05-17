@@ -2,11 +2,11 @@ import { resetUserState } from "../userState";
 import { flows } from "../config/flows";
 import { UserState } from "../userState";
 import { updateUserState } from "../userState";
-import { goToMenu, MAIN_MENU } from "./goToMenu";
-import { sendTextMessage } from "./sendTextMessage";
-import { sendMessageTemplate } from "../sendMessage";
-import dotenv from "dotenv";
+import { goToMenu, MAIN_MENU, MenuResponse } from "./goToMenu";
+import { sendTextMessage, TextResponse } from "./sendTextMessage";
+import { sendTemplate } from "../sendMessage";
 
+import dotenv from "dotenv";
 dotenv.config();
 
 const PHONE_NUMBER_TO_SEND_NEW_CONTACTS =
@@ -25,11 +25,10 @@ const sendUserDetails = async ({
   userName: string;
   phoneNumber: string;
 }) => {
-  await sendMessageTemplate(
-    PHONE_NUMBER_TO_SEND_NEW_CONTACTS,
-    "new_contact_2",
-    [userName, phoneNumber]
-  );
+  await sendTemplate(PHONE_NUMBER_TO_SEND_NEW_CONTACTS, "new_contact_2", [
+    userName,
+    phoneNumber,
+  ]);
 };
 
 const stepsFunctions: Record<
@@ -86,9 +85,7 @@ export const runFlowStep = async ({
   message: string;
   state: UserState;
   stepIndex: number;
-}): Promise<
-  { type: "message"; text: string } | { type: "menu"; text: string }
-> => {
+}): Promise<MenuResponse | TextResponse> => {
   updateStepInState(userId, flowId, stepIndex);
 
   const stepConfig = flows[flowId][stepIndex];
